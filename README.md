@@ -35,6 +35,10 @@
 | --- | --- |
 | Madrid | Beamer の Madrid を参考にした見た目。CSS は一から書いたもので、Beamer のコードは使っていない |
 
+## ライセンス
+
+WebSlide が書いた部分（`template.html`・`webslide/webslide.js`・`webslide/figure.js`・`webslide/base.css`・`webslide/themes/`）は MIT License です（`LICENSE`）。中に入れている書体と KaTeX は、下のそれぞれのライセンスのままです。
+
 ## 中に入れているもの
 
 | もの | ライセンス | 場所（許諾文はそれぞれのファイルの最初） |
