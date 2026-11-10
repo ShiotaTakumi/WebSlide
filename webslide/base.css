@@ -1,0 +1,187 @@
+/* ===== WebSlide の見た目のうち、どのテーマにも共通のもの（base.css）。webslide.js が読み込む。触らない =====
+   テーマごとの見た目（色・見出しの帯・下の帯・箇条書きの印・箱・表紙・区切り）は themes/ の中にある */
+body > :is(cover, slide, divider) { display: none }
+/* 960 × 720 px（＝ 720 × 540 pt、4:3）の固定キャンバス。1pt = 4/3 px */
+:root {
+  --red: #FF0000; --ink: #000;
+  /* 文字の大きさ。本文は 24pt を割らない。20pt はキャプション・文献などの下限 */
+  --pt20: 26.67px; --pt24: 32px; --pt32: 42.67px; --pt36: 48px; --pt44: 58.67px;
+  /* Beamer（12pt）の大きさ：見出し・題目（\Large、34.3pt）、箱の見出し（\large、28.6pt）、下の帯（\tiny、11.9pt） */
+  --Large: 45.7px; --large: 38.1px; --tiny: 15.9px;
+  /* 文の書体 WebSlideText：英数字は Computer Modern Sans、日本語は IPA Pゴシック（MS Pゴシックに似せた無料の書体）。
+     どちらも fonts/ の中に埋め込んである（fonts/cm-sans.css・fonts/ipa-pgothic.css） */
+  --font: "WebSlideText", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+  /* 段階表示（step）で出るまでの時間。0s ですぐ出る（PowerPoint の「表示」と同じ）。.2s などにすると、ふわっと出る */
+  --fade: 0s;
+  /* 日本語の字（太字でないところ）に足す線の太さ（pt）。ふだんは 0（Beamer と同じ太さ）。
+     細く見えるときは、左下のメニューの「−」「+」で 0.1pt ずつ変えられる */
+  --ja-stroke: 0pt;
+}
+* { box-sizing: border-box }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #222 }
+/* 字の太さは Mac のふつうの描き方のまま（-webkit-font-smoothing: antialiased を付けると、細く見えすぎる） */
+body { font-family: var(--font); color: var(--ink); line-break: strict }
+.ja { -webkit-text-stroke: var(--ja-stroke) currentColor }
+.deck { position: fixed; inset: 0 }
+/* 位置と倍率は fit() が決める。発表モードでは、クリックしても文字を選ばない */
+.stage { position: absolute; left: 0; top: 0; width: 960px; height: 720px;
+  background: #fff; overflow: hidden; transform-origin: 0 0; user-select: none; -webkit-user-select: none }
+body.edit .stage { user-select: text; -webkit-user-select: text; cursor: text }
+.page { position: absolute; inset: 0; display: none; font-size: var(--pt24); line-height: 1.2 }
+.page.on { display: block }
+
+/* 最後のものの下の空きは、真ん中を決めるときに数えない */
+.page > slide > :last-child, item:last-child { margin-bottom: 0 }
+
+/* ---- 文 ---- */
+p { margin: 0 }
+red { color: var(--red) }
+navy { color: var(--navy) }
+cite { font-style: normal }
+nobr { white-space: nowrap }
+rt { font-size: var(--pt20); color: var(--navy) }
+:is(.ttl, .ctitle, .sbox, .bt) rt { color: inherit }
+.arw { display: inline-block; width: 1.05em; height: .6em; margin: 0 .2em; vertical-align: .05em; background: var(--red);
+  clip-path: polygon(0 30%, 58% 30%, 58% 0, 100% 50%, 58% 100%, 58% 70%, 0 70%) }
+/* 数式（KaTeX）。本文と同じ大きさにする（KaTeX のままだと 1.21 倍）。\text{…} の中は本文と同じ書体。
+   Beamer と同じく、英字は Sans の斜体、数字は Sans にする（小文字のギリシャ文字は Sans にないので、ふつうの数式の書体で出る） */
+.katex { font-size: 1em; font-family: KaTeX_SansSerif, KaTeX_Main }
+.katex .mathnormal { font-family: KaTeX_SansSerif, KaTeX_Math; font-style: italic }
+/* = + ( ) , などの記号は、Beamer と同じくふつうの数式の書体 */
+.katex :is(.mrel, .mbin, .mopen, .mclose, .mpunct) { font-family: KaTeX_Main }
+.katex .text { font-family: var(--font) }
+.katex-display { margin: 0 }
+frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.2; margin: 0 .15em }
+num { display: block; padding: 0 .2em; border-bottom: 2px solid var(--ink) }
+den { display: block; padding: 0 .2em }
+
+/* display: table にすると、中の字と数式の間の空白が消える */
+note { display: block; width: fit-content; margin: 8px auto; padding: 2px 14px; border: 3px solid #006000; border-radius: 7px; background: #E5EFE5; line-height: 1.4 }
+down { display: block; margin: 6px 0; text-align: center }
+down::before { content: ""; display: block; width: 40px; height: 26px; margin: 0 auto 6px; background: var(--red);
+  clip-path: polygon(30% 0, 70% 0, 70% 42%, 100% 42%, 50% 100%, 0 42%, 30% 42%) }
+
+/* ---- 2 段組と図 ---- */
+columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start }
+column { display: block; min-width: 0 }
+figure { margin: 0 0 6px; text-align: center }
+figure > img, figure > svg { display: block; max-width: 100%; margin: 0 auto }
+figcaption { font-size: var(--pt24); margin-top: 4px }
+
+/* ---- 部品（class で使う） ---- */
+.navy-normal { color: var(--navy) }
+/* 「入力：」「問い：」：ラベルを同じ幅の枠に入れて「：」の位置をそろえ、2 行目以降も枠の後ろにそろえる。
+   枠はインラインにして、コピーしたときにラベルと「：」の間で改行されないようにする */
+.qa { padding-left: 3.2em; text-indent: -3.2em; margin: 0 }
+.qa-label { display: inline-block; width: 3.2em; text-indent: 0; white-space: nowrap }
+.qa-label navy { display: inline-block; width: 2em }
+.label { padding: 0 10px; background: #fff9e6; border: 3px solid #e97132; line-height: 1.5; white-space: nowrap }
+.pink { width: fit-content; margin: 8px auto; padding: 0 12px; border: 3px solid #FF2F92; background: #FFF0F7; line-height: 1.4 }
+.frame { position: absolute; border: 5px solid var(--red); border-radius: 21px; pointer-events: none }
+/* 何も表示しない step。行の高さを取らない */
+.mark { display: none }
+/* 名前・スライダー・値の 1 行 */
+.bar { display: flex; align-items: center; gap: 8px; margin-top: 10px }
+.bar i { font-family: KaTeX_SansSerif; color: var(--navy); min-width: 18px }
+.bar input { flex: 1; min-width: 0; accent-color: var(--navy) }
+.bar > span { width: 64px; text-align: right; font-family: KaTeX_SansSerif; font-variant-numeric: tabular-nums }
+/* 再生のボタン：角を丸めた白の四角に、青の細い枠と青の三角 */
+.play { position: relative; width: 52px; height: 32px; padding: 0; border: none; border-radius: 7px;
+  background: #fff; box-shadow: inset 0 0 0 2px var(--blue); cursor: pointer }
+.play::before { content: ""; position: absolute; left: 20px; top: 8px;
+  border-left: 14px solid var(--blue); border-top: 8px solid transparent; border-bottom: 8px solid transparent }
+.play:hover { background: #E9E9F3 }
+/* 切り替えのボタン：字は数式にせず、同じ書体のふつうの文字にする（KaTeX の字の箱はボタンより高く、上下の真ん中に来ないため） */
+.sw { display: flex; gap: 8px; margin: 1px 0 }
+.sw button { flex: 1; height: 26px; padding: 0; border: none; border-radius: 6px; background: #fff; box-shadow: inset 0 0 0 2px var(--blue);
+  color: var(--blue); font: inherit; font-family: KaTeX_SansSerif; line-height: 1; cursor: pointer }
+.sw button.sel { background: var(--blue); color: #fff }
+.sw button:disabled { cursor: default }
+/* 表。色は --edge（見出しの地）・--ink2（左の列の字）・--zebra（1 行おきの地）で変える */
+.tbl { --edge: var(--blue); --ink2: var(--navy); --zebra: #E9E9F3; border-collapse: collapse; line-height: 1.15 }
+.tbl th, .tbl td { padding: 1px 12px }
+.tbl th { padding-top: 2px; padding-bottom: 2px; font-weight: 400; color: #fff; background: var(--edge) }
+.tbl td { text-align: right; font-family: KaTeX_SansSerif; font-variant-numeric: tabular-nums }
+.tbl td:first-child { text-align: center; color: var(--ink2) }
+.tbl :is(th, td):first-child { border-right: 3px solid #fff }
+.tbl tbody tr:nth-child(even) { background: var(--zebra) }
+.tbl tbody tr:last-child td { border-bottom: 1.5px solid var(--edge) }
+/* 赤の ×：.on が付いたら一度に出す。1 画ずつ引く動きは付けない（破線で隠すと、Safari が線の終わりに赤い点を描く） */
+.cross { visibility: hidden }
+.cross.on { visibility: visible }
+.cross line { stroke: var(--red); stroke-width: 6; stroke-linecap: round }
+
+/* ---- 段階表示 ---- */
+/* <input type="range" step="1"> の step は刻みの幅なので、段階表示の目印にしない */
+[step]:not(input) { opacity: 0; transition: opacity var(--fade) }
+[step]:not(input).on { opacity: 1 }
+/* ← で戻るときは、動かさず、すぐ前の形にする（prev() が .step-back を付ける） */
+.step-back .stage *, .step-back .stage *::before, .step-back .stage *::after { transition: none !important; animation: none !important }
+
+/* ---- 一覧（左に並べる。T） ---- */
+.side { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; overflow-y: auto; display: none; z-index: 10;
+  background: #333; padding: 12px 12px 64px 36px }
+body.side-on .side { display: block }
+.thumb { position: relative; margin: 0 0 12px; cursor: pointer }
+.thumb .tbox { position: relative; width: 192px; height: 144px; overflow: hidden; background: #fff; outline: 1px solid #555 }
+.thumb .tbox > .page { display: block; width: 960px; height: 720px; transform: scale(.2); transform-origin: 0 0; pointer-events: none }
+.thumb.cur .tbox { outline: 3px solid #4da3ff }
+.thumb .tno { position: absolute; right: 200px; top: 0; font: 13px/1 Arial, sans-serif; color: #ccc }
+
+/* ---- 左下のボタン。▷ で出し、◁ でしまう。マウスを止めると ▷ ごと隠れる。画面の操作用なので小さくてよい ---- */
+/* 下のスライドが透けて見づらくならないよう、不透明な板に載せて、影を付けて重ねる */
+.tools { position: fixed; left: 12px; bottom: 12px; z-index: 20; display: flex; gap: 6px; padding: 6px;
+  background: #1e1e1e; border: 1px solid #444; border-radius: 10px; box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
+  opacity: 0; visibility: hidden; transition: opacity .3s, visibility .3s }
+.tools.show { opacity: 1; visibility: visible }
+.tools button { font: 600 13px/1 system-ui, sans-serif; color: #fff; background: #2e2e2e;
+  border: 1px solid #555; border-radius: 6px; padding: 7px 10px; cursor: pointer }
+.tools button:hover { background: #3a3a3a }
+.tools button.on { background: #1D82E9; border-color: #1D82E9 }
+.tools .op { display: none }
+body.tools-open .tools .op { display: block }
+.tools .val { min-width: 52px; font-variant-numeric: tabular-nums }
+
+/* ---- ポインター（L）と、選択・キー無効の印（E・U） ---- */
+.pointer { position: fixed; z-index: 30; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%;
+  background: #ff2020; box-shadow: 0 0 6px 3px rgba(255, 40, 40, .75), 0 0 18px 8px rgba(255, 0, 0, .35);
+  pointer-events: none; display: none }
+body.ptr-on .pointer { display: block }
+body.ptr-on, body.ptr-on * { cursor: none !important }
+.badge { position: fixed; right: 12px; top: 12px; z-index: 20; display: none; font: 600 13px/1 system-ui, sans-serif;
+  color: #fff; background: #E5325F; border-radius: 6px; padding: 7px 10px }
+body.edit .badge, body.op .badge { display: block }
+body.op .badge { background: #1A8502 }
+
+/* ---- 指で触る画面でページを送る ◀ ▶。指で触る画面（hover: none）だけ出す。
+   縦に持つと、スライドの下の余白の真ん中に 2 つ並べる。横に持つと、左右の余白の上下の真ん中に 1 つずつ置く ---- */
+.tap-nav { display: none }
+@media (hover: none) {
+  .tap-nav { display: block; position: fixed; z-index: 40; width: 64px; height: 44px; padding: 0; border: none; border-radius: 8px;
+    background: #fff; box-shadow: inset 0 0 0 2px var(--blue); -webkit-tap-highlight-color: transparent; touch-action: manipulation }
+  .tap-nav::before { content: ""; position: absolute; top: 12px; border-top: 10px solid transparent; border-bottom: 10px solid transparent }
+  .tap-prev::before { left: 23px; border-right: 17px solid var(--blue) }
+  .tap-next::before { left: 25px; border-left: 17px solid var(--blue) }
+  .tap-nav:active { background: #e8f2fd }
+  .tap-prev { left: calc(50% - 76px); bottom: 24px }
+  .tap-next { left: calc(50% + 12px); bottom: 24px }
+}
+@media (hover: none) and (orientation: landscape) {
+  .tap-prev { left: 12px; bottom: auto; top: calc(50% - 22px) }
+  .tap-next { left: auto; right: 12px; bottom: auto; top: calc(50% - 22px) }
+}
+
+/* ---- 印刷（P）：1 ページ 1 枚。step のあるページは、1 つずつ出る様子を別々のページにする
+   （それは PDF のときだけ。Print のときは、step を全部出したページ .all だけを出す） ---- */
+.print { display: none }
+@page { size: 10in 7.5in; margin: 0 }
+@media print {
+  html, body { height: auto; overflow: visible; background: #fff }
+  .deck, .side, .tools, .pointer, .badge, .tap-nav { display: none !important }
+  .print { display: block }
+  .ppage { position: relative; width: 960px; height: 720px; overflow: hidden; break-after: page }
+  .ppage:last-child { break-after: auto }
+  body:not(.print-steps) .ppage:not(.all) { display: none }
+  .ppage > .page { display: block }
+  *, *::before, *::after { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+  [step] { transition: none }

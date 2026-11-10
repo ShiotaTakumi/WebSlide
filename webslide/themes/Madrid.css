@@ -1,0 +1,78 @@
+/* ===== テーマ Madrid（Beamer の Madrid を参考にした見た目）。webslide.js が読み込む =====
+   色と位置は、同じ中身の Beamer（Madrid・12pt）の PDF を 960 × 720 にして測って合わせた */
+:root {
+  /* Beamer の structure の色 */
+  --navy: #3333B2; --blue: #3333B2;
+  /* 下の帯の 3 つの色（左から） */
+  --foot1: #191959; --foot2: #262686; --foot3: #3333B2;
+  /* 角丸の箱の影：0.5px ずつ広げた影を 21 枚重ねる。k 枚目の濃さは 1 / (21.5 + k)（最後の 1 枚は 1 / 84）。
+     重ねると、影の芯の端で 50%、10.5px 先で 0 になり、その間は一定の割合で薄くなる */
+  --shade: 0 0 0 0.5px rgba(0, 0, 0, 0.0444), 0 0 0 1px rgba(0, 0, 0, 0.0426), 0 0 0 1.5px rgba(0, 0, 0, 0.0408), 0 0 0 2px rgba(0, 0, 0, 0.0392), 0 0 0 2.5px rgba(0, 0, 0, 0.0377), 0 0 0 3px rgba(0, 0, 0, 0.0364), 0 0 0 3.5px rgba(0, 0, 0, 0.0351), 0 0 0 4px rgba(0, 0, 0, 0.0339), 0 0 0 4.5px rgba(0, 0, 0, 0.0328), 0 0 0 5px rgba(0, 0, 0, 0.0317), 0 0 0 5.5px rgba(0, 0, 0, 0.0308), 0 0 0 6px rgba(0, 0, 0, 0.0299), 0 0 0 6.5px rgba(0, 0, 0, 0.0290), 0 0 0 7px rgba(0, 0, 0, 0.0282), 0 0 0 7.5px rgba(0, 0, 0, 0.0274), 0 0 0 8px rgba(0, 0, 0, 0.0267), 0 0 0 8.5px rgba(0, 0, 0, 0.0260), 0 0 0 9px rgba(0, 0, 0, 0.0253), 0 0 0 9.5px rgba(0, 0, 0, 0.0247), 0 0 0 10px rgba(0, 0, 0, 0.0241), 0 0 0 10.5px rgba(0, 0, 0, 0.0119);
+}
+
+/* ---- 下の帯：発表者と所属・題目・日付とページ番号を、3 つの色の帯に入れる。どのページにも付く ----
+   ここは毎ページ同じ情報をくり返すだけなので、字は 20pt より小さい（Beamer と同じ大きさ） */
+.foot { position: absolute; left: 0; bottom: 0; width: 960px; height: 23px; display: flex;
+  font-size: var(--tiny); line-height: 23px; color: #fff; white-space: nowrap }
+.foot > div { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 0 15px; text-align: center }
+.foot .f1 { background: var(--foot1) }
+.foot .f2 { background: var(--foot2) }
+.foot .f3 { display: flex; justify-content: flex-end; gap: 4.6em; background: var(--foot3) }
+.foot .fdate { overflow: hidden; text-overflow: ellipsis }
+.foot .ja { -webkit-text-stroke: 0 }
+
+/* ---- ふつうのページの見出し（上の帯） ---- */
+.ttl { position: absolute; left: 0; top: 0; width: 960px; height: 81px; padding: 0 22px; display: flex; align-items: center;
+  background: var(--navy); font-size: var(--Large); color: #fff; line-height: 1.2; white-space: nowrap }
+/* 中身は、見出しの帯と下の帯の間の上下の真ん中に置く。入りきらないときは上から並べる */
+.page > slide { position: absolute; left: 33px; top: 81px; width: 894px; height: 616px;
+  display: flex; flex-direction: column; justify-content: safe center }
+
+/* ---- 箇条書き（立体の玉。2 段目は小さい玉） ---- */
+list { display: block; margin: 0 }
+item { display: block; position: relative; padding-left: 61px; margin: 0 0 5.6px }
+/* 玉は、左上に光の当たった丸（放射状のグラデーション）。画像にしないのは、Safari が印刷のときにまだ出していない画像を描かないため */
+item::before { content: ""; position: absolute; left: 32px; top: calc(.6em - 7px); width: 14px; height: 14px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #9A9ADB 0, #5555C2 28%, #3333B2 52%, #1D1D67 100%) }
+item list { margin: 5.6px 0 0 }
+item item { padding-left: 65px; margin-bottom: 0 }
+item item::before { left: 37px; top: calc(.6em - 5.5px); width: 11px; height: 11px }
+
+/* ---- 箱（Beamer の block）。角丸で影を付け、見出しは色の地に白の字。見出しから中身の地へは、少しぼかしてつなぐ。
+   箱は文の左右の端より 12px 外に出す ---- */
+/* 角丸の箱（箱・表紙の題目・区切り）の影（Beamer と同じ形）。箱の右と下に、端で 50% の灰色から 10.5px かけて白になる影を付ける。
+   右の影は箱の上から 12.5px、下の影は箱の左から 11px のところで、同じ割合で薄くなって消える。
+   影の芯（箱の右下の部分。角は右下だけ丸める）を箱の後ろに置き、0.5px ずつ広げた影（--shade）を重ねて、一定の割合で薄くする */
+:is(block, alertblock, exampleblock, .ctitle, .sbox)::before { content: ""; position: absolute; left: 21.5px; top: 23px; right: 0; bottom: 0;
+  z-index: -1; border-radius: 0 0 9px 0; background: rgba(0, 0, 0, .0233); box-shadow: var(--shade); pointer-events: none }
+block, alertblock, exampleblock { display: block; position: relative; margin: 0 -12px 19px; border-radius: 9px; background: var(--b) }
+:is(block, alertblock, exampleblock) + :is(block, alertblock, exampleblock) { margin-top: 14px }
+block { --t: #262686; --b: #E9E9F3 }
+alertblock { --t: #BF0000; --b: #F9E5E5 }
+exampleblock { --t: #006000; --b: #E5EFE5 }
+.bt { display: flex; align-items: center; gap: .3em; height: 47px; padding: 0 11px; background: var(--t); color: #fff;
+  border-radius: 9px 9px 0 0; font-size: var(--large); line-height: 1.2; white-space: nowrap }
+/* 見出しの全角数字（定義１ の １ など）は、漢字より背が低く下端が浮いて、上に寄って見えるので少し下げる */
+.bt .zd { position: relative; top: .0625em }
+.bb { padding: 8px 13px; border-radius: 0 0 9px 9px; background: linear-gradient(var(--t), var(--b) 6px) }
+.bb > :last-child { margin-bottom: 0 }
+
+/* ---- 表紙：題目の箱（角丸・影）、その下に著者（1 行）・所属・会の名前と日付。全体を上下の真ん中に置く ---- */
+cover { position: absolute; left: 33px; top: 0; width: 894px; height: 697px; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center }
+.ctitle { position: relative; align-self: stretch; margin: 0 -12px; padding: 25px 24px; border-radius: 9px; background: var(--navy); color: #fff }
+headline { display: block; font-size: var(--Large); line-height: 1.27 }
+.authors { display: flex; justify-content: center; gap: 1.05em; margin-top: 60px; white-space: nowrap }
+/* 所属が 2 つ以上あるときは、名前と所属に番号を付けてつなぐ */
+.authors sup, .insts sup { font-size: .6em; line-height: 0 }
+.insts { display: flex; justify-content: center; gap: 1em; margin-top: 36px; font-size: var(--pt20); white-space: nowrap }
+.cmeta { margin-top: 34px }
+meeting, date { display: block; white-space: nowrap }
+qr { position: absolute; right: 0; bottom: 30px; width: 235.7px }
+qr img { display: block; width: 235.7px; height: 235.7px }
+qr .qcap { position: absolute; left: 0; top: 229.3px; width: 100%; text-align: center; font-size: var(--pt20) }
+
+/* ---- 区切りのページ：角丸の箱に入れて置く ---- */
+divider { position: absolute; left: 33px; top: 0; width: 894px; height: 697px; display: flex; align-items: center }
+.sbox { position: relative; flex: 1; margin: 0 -12px; padding: 36px 24px; border-radius: 9px; background: var(--navy); color: #fff;
+  text-align: center; font-size: var(--Large); line-height: 1.27 }

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja" theme="Madrid">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>タイトル</title>
+<!-- 見た目と動きは webslide/ フォルダ（書き方は webslide/webslide.js の最初にある）。このファイルには中身だけを書く。
+     テーマは <html theme="…"> で選ぶ（webslide/themes/ の中のファイルの名前） -->
+<script src="webslide/webslide.js"></script>
+<!-- このスライドだけの位置の調整と動きは、別のファイルに書く：<link rel="stylesheet" href="xxx.css">・<script src="figs/xxx.js"></script> -->
+
+<cover>
+  <meeting>第○回 ○○研究会</meeting>
+  <headline><ruby>題目<rt>だいもく</rt></ruby>の 1 行目<br>題目の 2 行目</headline>
+  <author aff="○○大学">著者 一</author>
+  <author aff="○○大学">著者 二</author>
+  <author aff="○○大学" presenter>発表者</author>
+  <date short="2026年○月○日">2026年○月○日（○）@ 会場</date>
+  <!-- QR コードを置くとき：<qr src="qr.png">シミュレーター</qr> -->
+</cover>
+
+<slide title="問題設定">
+  <block title="問題の名前（英語の名前）" cite="[著者 et al., 年]">
+    <p class="qa"><span class="qa-label"><navy>入力</navy>$\,$：</span>入力の説明（<red>大事な言葉</red>は赤）</p>
+    <p class="qa"><span class="qa-label"><navy>問い</navy>$\,$：</span>答えたいことを 1 文で書く</p>
+  </block>
+  <p>本文の段落。文献は <cite>[著者 et al., 年]</cite> のように書く。</p>
+  <note>緑の枠の一言 ➡ 結論</note>
+</slide>
+
+<slide title="箇条書き">
+  <list>
+    <item>1 段目の項目</item>
+    <item>1 段目の項目
+      <list>
+        <item>2 段目の項目</item>
+        <item>2 段目の項目</item>
+      </list>
+    </item>
+  </list>
+  <p>➡ 矢印のあとに結論を書く</p>
+  <down>下向きの矢印の下に、中央寄せの一言</down>
+</slide>
+
+<slide title="主結果">
+  <block title="定理$\,$１">主張の本文</block>
+  <alertblock title="注意" step>クリックで出る（step を付けた箱）</alertblock>
+  <exampleblock title="例" step>もう一度クリックで出る</exampleblock>
+</slide>
+
+<slide title="数式">
+  <p>文の中の数式：グラフ $G = (V, E)$ と頂点 $s, t \in V$</p>
+  <p>中央に置く数式：</p>
+  $$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$$
+  <p>日本語の入った分数：<frac><num>分子の説明</num><den><red>分母の説明</red></den></frac></p>
+</slide>
+
+<slide title="2 段組と図">
+  <columns>
+    <column>
+      <list>
+        <item>左に説明</item>
+        <item>右に図</item>
+      </list>
+    </column>
+    <column>
+      <figure>
+        <svg id="fig-bars" width="400" height="270"></svg>
+        <figcaption>図のキャプション</figcaption>
+      </figure>
+    </column>
+  </columns>
+</slide>
+
+<slide title="動く図">
+  <columns>
+    <column>
+      <list>
+        <item>クリックで大きくなる</item>
+        <item>バーで $n$ を変えられる</item>
+      </list>
+      <div class="bar"><i>n</i><input type="range" min="3" max="12" value="6"><span>6</span></div>
+    </column>
+    <column>
+      <figure>
+        <svg id="fig-polygon" width="400" height="320"></svg>
+        <span step class="mark"></span>
+      </figure>
+    </column>
+  </columns>
+</slide>
+
+<divider>参考資料</divider>
+
+<slide title="まとめ">
+  <list>
+    <item>わかったことを 1 行ずつ</item>
+    <item>今後の課題を 1 行ずつ</item>
+  </list>
+</slide>
+
+<script>
+/* ===== 図を描くコード（<svg id="…"> と同じ名前で書く。mk・txt・figure などは webslide.js の中にある）===== */
+FIG["fig-bars"] = function (svg) {
+  const hs = [5, 4, 3, 2], base = 220;
+  hs.forEach(function (h, i) {
+    const x = 40 + i * 90;
+    mk("rect", { x: x, y: base - h * 36, width: 56, height: h * 36, fill: "#5e9a4c" }, svg);
+    txt(x + 28, base + 36, "ABCD"[i], { "text-anchor": "middle", "font-size": 32, "font-weight": 700 }, svg);
+  });
+  mk("line", { x1: 20, y1: base, x2: 390, y2: base, stroke: "#000", "stroke-width": 2 }, svg);
+};
+
+/* 動く図：目印（.mark）が出たら正 n 角形が大きくなり、バーで n を変えられる。
+   still のとき（一覧・印刷・PDF の写し）は、目印が出ているかを見て 1 回だけ描く */
+figure("fig-polygon", function (svg, still) {
+  const slide = svg.closest("slide"), mark = slide.querySelector(".mark");
+  const input = slide.querySelector(".bar input"), value = slide.querySelector(".bar span");
+  let t = 0;
+  function draw() {
+    const n = +input.value, r = 60 + 80 * ease(t), pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + 2 * Math.PI * i / n;
+      pts.push((200 + r * Math.cos(a)).toFixed(2) + "," + (160 + r * Math.sin(a)).toFixed(2));
+    }
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    mk("polygon", { points: pts.join(" "), fill: "#E9E9F3", stroke: "#3333B2", "stroke-width": 3, "stroke-linejoin": "round" }, svg);
+    lid(svg, [200, 160], "n", 1, true);
+  }
+  if (still) { t = mark.classList.contains("on") ? 1 : 0; draw(); return; }
+  follow(mark, function (x) { t = x; draw(); }, 1200);
+  input.addEventListener("input", function () { value.textContent = input.value; draw(); });
+  draw();
+});
+</script>
